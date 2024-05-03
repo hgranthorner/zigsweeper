@@ -104,8 +104,8 @@ pub fn Board(comptime square: usize) type {
             }
         }
 
-        pub fn uncover(self: *@This(), x: usize, y: usize) void {
-            const initial_tile = self.get(x, y) orelse unreachable;
+        pub fn uncover(self: *@This(), x: anytype, y: anytype) void {
+            const initial_tile = self.get(x, y) orelse return;
             if (initial_tile.uncovered) return;
             switch (initial_tile.type) {
                 .mine => return,
@@ -116,7 +116,7 @@ pub fn Board(comptime square: usize) type {
             arr[len] = Position{ .x = @intCast(x), .y = @intCast(y) };
             len += 1;
 
-            while (0 <= len) {
+            while (0 < len) {
                 const pos = arr[len - 1];
                 len -= 1;
                 var tile = self.get(pos.x, pos.y).?;
