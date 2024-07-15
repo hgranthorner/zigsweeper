@@ -52,6 +52,21 @@ pub const Difficulty = union(DifficultyTag) {
     }
 };
 
+pub const GameState = union(enum) {
+    choosing_difficulty: void,
+    playing: void,
+    won: void,
+    lost: void,
+};
+
+pub const Game = struct {
+    state: GameState,
+
+    pub fn init() Game {
+        return Game{ .state = .playing };
+    }
+};
+
 const BoardError = error{
     TestFailed,
 };
@@ -104,13 +119,13 @@ pub fn Board(comptime square: usize) type {
             }
         }
 
-        pub fn uncover(self: *@This(), x: anytype, y: anytype) void {
-            const initial_tile = self.get(x, y) orelse return;
-            if (initial_tile.uncovered) return;
-            switch (initial_tile.type) {
-                .mine => return,
-                else => {},
+        pub fn uncover(self: *@This(), x: anytype, y: anytype) ?GameState {
+            const initial_tile = self.get(x, y) orelse return null;
+            if (initial_tile.uncovered) return null;
+            if (initial_tile.type == .mine) {
+                return GameState.lost;
             }
+
             var len: usize = 0;
             var arr: [board_size * board_size]Position = undefined;
             arr[len] = Position{ .x = @intCast(x), .y = @intCast(y) };
@@ -122,7 +137,7 @@ pub fn Board(comptime square: usize) type {
                 var tile = self.get(pos.x, pos.y).?;
                 if (tile.uncovered == true or tile.flag == true) continue;
                 switch (tile.type) {
-                    .mine => return,
+                    .mine => return null,
                     .value => |value| {
                         tile.uncovered = true;
                         self.set(pos.x, pos.y, tile).?;
@@ -139,6 +154,7 @@ pub fn Board(comptime square: usize) type {
                     },
                 }
             }
+            return null;
         }
 
         fn seedMines(self: *@This()) void {
@@ -183,6 +199,36 @@ pub fn Board(comptime square: usize) type {
             return self.tiles[index];
         }
 
+        pub fn flag(self: *@This(), x: anytype, y: anytype) ?GameState {
+            if (self.remainingFlags() == 0) {
+                return null;
+            }
+
+            if (self.get(x, y)) |const_tile| {
+                {
+                    var tile = const_tile;
+                    if (tile.flag) {
+                        tile.flag = false;
+                    } else {
+                        tile.flag = true;
+                    }
+                    self.set(x, y, tile).?;
+                }
+
+                if (self.remainingFlags() == 0) {
+                    for (self.tiles) |tile| {
+                        if (tile.flag and tile.type != .mine) {
+                            return null;
+                        }
+                    }
+
+                    return GameState.won;
+                }
+            }
+
+            return null;
+        }
+
         pub fn set(self: *@This(), x: anytype, y: anytype, tile: Tile) ?void {
             const index = coordsToIndex(x, y) orelse return null;
             self.tiles[index] = tile;
@@ -192,6 +238,7 @@ pub fn Board(comptime square: usize) type {
             if (x < 0 or y < 0 or square <= x or square <= y) {
                 return null;
             }
+
             const uy: usize = @intCast(y);
             const ux: usize = @intCast(x);
             return uy * square + ux;
@@ -232,6 +279,17 @@ pub fn Board(comptime square: usize) type {
             }
 
             return surrounding_i;
+        }
+
+        pub fn remainingFlags(self: @This()) i32 {
+            var total_flags: i32 = @intCast(self.difficulty.numMines(board_size));
+            for (self.tiles) |tile| {
+                if (tile.flag) total_flags -= 1;
+            }
+
+            std.debug.print("Remaining flags: {d}\n", .{total_flags});
+
+            return total_flags;
         }
     };
 }
@@ -288,4 +346,12 @@ test "Board gets surrounding tiles correctly" {
         try t.expectEqual(5, len);
         try t.expectEqual(Tile.value(0), out[0]);
     }
+}
+
+test "Board tracks remaining flags correctly" {
+    var board = Board(LARGEST_BOARD_SIDE).init(Difficulty.hard).?;
+    const starting_flags = board.remainingFlags();
+    board.tiles[0].flag = true;
+    const ending_flags = board.remainingFlags();
+    try t.expect(ending_flags == starting_flags - 1);
 }

@@ -19,9 +19,9 @@
         //         .url = "https://github.com/raysan5/raylib/archive/b03c8ba945a06ed1ec3d6ed7c3185e1264909323.tar.gz",
         //         .hash = "1220b6b6198344837d51588b1ed3f63cd6b56b2d60da675219f7578018b54f885830",
         // },
-         .raylib = .{
-            .url = "https://github.com/raysan5/raylib/archive/e47ebec66134800e734710038ea4e5f070f3ef06.tar.gz",
-            .hash = "12208edb6d35c0aa5f57262014b02392c6ccfd0685a8eff1d961b42a612d3418fa89",
+        .raylib = .{
+            .url = "https://github.com/raysan5/raylib/archive/refs/heads/master.zip",
+            .hash = "12207e0b993b2be05424d48e9989f482b5e37cbb01d5ac3b275a001d3be6bcd41d56",
         },
     },
 
