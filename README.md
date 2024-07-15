@@ -12,7 +12,8 @@ Ensure you have zig 0.13 installed (`zig build` tends to break between minor ver
 
 ## TODO
 
-- [ ] Set up winning and losing states IN PROGRESS
+- [X] Set up winning and losing states
+- [ ] Convert everything to rec collisions
 - [ ] Be able to reset the game
 - [ ] Choose your difficulty
 - [ ] Properly center mine numbers

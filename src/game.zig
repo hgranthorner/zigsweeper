@@ -61,9 +61,10 @@ pub const GameState = union(enum) {
 
 pub const Game = struct {
     state: GameState,
+    selected_difficulty: Difficulty,
 
-    pub fn init() Game {
-        return Game{ .state = .playing };
+    pub fn init(starting_state: GameState) Game {
+        return Game{ .state = starting_state, .selected_difficulty = .easy };
     }
 };
 
