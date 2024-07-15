@@ -1,5 +1,7 @@
 const std = @import("std");
 const g = @import("game.zig");
+const b = @import("board.zig");
+const Board = @import("board.zig").Board;
 const rl = @import("raylib.zig");
 
 const TilePosition = struct {
@@ -7,7 +9,7 @@ const TilePosition = struct {
     pos: g.Position,
 };
 
-const board_side_in_tiles = g.LARGEST_BOARD_SIDE;
+const board_side_in_tiles = b.LARGEST_BOARD_SIDE;
 const width = 800;
 const height = 450;
 const padding = 20;
@@ -19,7 +21,7 @@ const tile_height = play_height / board_side_in_tiles;
 const font_size = 20;
 
 pub fn main() !void {
-    var board: g.Board(board_side_in_tiles) = undefined;
+    var board: Board(board_side_in_tiles) = undefined;
     var game = g.Game.init(.choosing_difficulty);
 
     rl.SetConfigFlags(rl.FLAG_MSAA_4X_HINT | rl.FLAG_VSYNC_HINT);
@@ -68,7 +70,7 @@ pub fn main() !void {
                 }
                 if (rl.IsKeyPressed(rl.KEY_ENTER)) {
                     game.state = .playing;
-                    board = g.Board(board_side_in_tiles).init(game.selected_difficulty) orelse unreachable;
+                    board = Board(board_side_in_tiles).init(game.selected_difficulty) orelse unreachable;
                 }
             },
             .lost => {},
@@ -81,8 +83,8 @@ pub fn main() !void {
 
         switch (game.state) {
             .playing => {
-                for (0..board_side_in_tiles) |ix| {
-                    for (0..board_side_in_tiles) |iy| {
+                for (0..board.length) |ix| {
+                    for (0..board.length) |iy| {
                         try drawTile(&board, ix, iy);
                     }
                 }
@@ -92,12 +94,14 @@ pub fn main() !void {
                 rl.DrawText("You win!", (width / 2) - @divFloor(win_width, 2), (height / 2), font_size, rl.BLACK);
             },
             .choosing_difficulty => {
-                for ([3][]const u8{ "Easy", "Medium", "Hard" }, 0..) |difficulty, i| {
+                for ([3][]const u8{ g.Difficulty.toString(.easy), g.Difficulty.toString(.medium), g.Difficulty.toString(.hard) }, 0..) |difficulty, i| {
                     const ix: isize = @intCast(i);
                     const text_width = rl.MeasureText(@ptrCast(difficulty), font_size);
                     const x = (width / 2) - @divFloor(text_width, 2);
                     const y = (height / 2) - (font_size + (20 - (ix * 20)));
-                    rl.DrawText(@ptrCast(difficulty), x, @intCast(y), font_size, difficultyColor(&game, difficulty));
+                    const game_text = game.selected_difficulty.toString();
+                    const color = if (std.mem.eql(u8, difficulty, game_text)) rl.RED else rl.BLACK;
+                    rl.DrawText(@ptrCast(difficulty), x, @intCast(y), font_size, color);
                 }
             },
             .lost => {
@@ -108,7 +112,7 @@ pub fn main() !void {
     }
 }
 
-fn drawTile(board: *g.Board(board_side_in_tiles), ix: anytype, iy: anytype) !void {
+fn drawTile(board: *Board(board_side_in_tiles), ix: anytype, iy: anytype) !void {
     const x = ix * tile_width + half_padding;
     const y = iy * tile_height + half_padding;
     const rect = rl.Rectangle{
@@ -172,21 +176,4 @@ fn getClickedTile() ?g.Position {
     const y_int: usize = @intFromFloat(pos.y);
     const y = @divFloor(y_int - half_padding, tile_height);
     return .{ .x = @intCast(x), .y = @intCast(y) };
-}
-
-fn difficultyColor(game: *g.Game, text: []const u8) rl.Color {
-    return switch (game.selected_difficulty) {
-        .easy => if (std.mem.eql(u8, text, "Easy"))
-            rl.RED
-        else
-            rl.BLACK,
-        .medium => if (std.mem.eql(u8, text, "Medium"))
-            rl.RED
-        else
-            rl.BLACK,
-        .hard => if (std.mem.eql(u8, text, "Hard"))
-            rl.RED
-        else
-            rl.BLACK,
-    };
 }
