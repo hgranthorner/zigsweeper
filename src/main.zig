@@ -20,6 +20,8 @@ const tile_width = play_width / board_side_in_tiles;
 const tile_height = play_height / board_side_in_tiles;
 const font_size = 20;
 
+const DifficultyBox = struct { difficulty: g.Difficulty, text: []const u8, rect: rl.Rectangle };
+
 pub fn main() !void {
     var board: Board(board_side_in_tiles) = undefined;
     var game = g.Game.init(.choosing_difficulty);
@@ -28,6 +30,25 @@ pub fn main() !void {
     rl.InitWindow(width, height, "Minesweeper");
     defer rl.CloseWindow();
     rl.SetTargetFPS(60);
+
+    var diff_boxes: [3]DifficultyBox = undefined;
+    for ([3]g.Difficulty{ g.Difficulty.easy, g.Difficulty.medium, g.Difficulty.hard }, 0..) |difficulty, i| {
+        const ix: isize = @intCast(i);
+        const diff_str = difficulty.toString();
+        const text_width = rl.MeasureText(@ptrCast(diff_str), font_size);
+        const x = (width / 2) - @divFloor(text_width, 2);
+        const y = (height / 2) - (font_size + (20 - (ix * 20)));
+        diff_boxes[i] = DifficultyBox{
+            .difficulty = difficulty,
+            .text = diff_str,
+            .rect = .{
+                .width = @floatFromInt(text_width),
+                .height = font_size,
+                .x = @floatFromInt(x),
+                .y = @floatFromInt(y),
+            },
+        };
+    }
 
     while (!rl.WindowShouldClose()) {
         if (rl.IsKeyPressed(rl.KEY_Q)) rl.CloseWindow();
@@ -94,14 +115,9 @@ pub fn main() !void {
                 rl.DrawText("You win!", (width / 2) - @divFloor(win_width, 2), (height / 2), font_size, rl.BLACK);
             },
             .choosing_difficulty => {
-                for ([3][]const u8{ g.Difficulty.toString(.easy), g.Difficulty.toString(.medium), g.Difficulty.toString(.hard) }, 0..) |difficulty, i| {
-                    const ix: isize = @intCast(i);
-                    const text_width = rl.MeasureText(@ptrCast(difficulty), font_size);
-                    const x = (width / 2) - @divFloor(text_width, 2);
-                    const y = (height / 2) - (font_size + (20 - (ix * 20)));
-                    const game_text = game.selected_difficulty.toString();
-                    const color = if (std.mem.eql(u8, difficulty, game_text)) rl.RED else rl.BLACK;
-                    rl.DrawText(@ptrCast(difficulty), x, @intCast(y), font_size, color);
+                for (diff_boxes) |box| {
+                    const color = if (std.meta.eql(box.difficulty, game.selected_difficulty)) rl.RED else rl.BLACK;
+                    rl.DrawText(@ptrCast(box.text), @intFromFloat(box.rect.x), @intFromFloat(box.rect.y), font_size, color);
                 }
             },
             .lost => {
