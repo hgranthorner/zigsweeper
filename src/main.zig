@@ -201,7 +201,6 @@ fn getClickedTile() ?g.Position {
         return null;
     }
     // Convert the position to x/y tile value
-    // uncover it if it's not uncovered
     const x_int: usize = @intFromFloat(pos.x);
     const x = @divFloor(x_int - half_padding, tile_width);
 
