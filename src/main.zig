@@ -49,10 +49,11 @@ pub fn main() !void {
             },
         };
     }
-
     while (!rl.WindowShouldClose()) {
         if (rl.IsKeyPressed(rl.KEY_Q)) rl.CloseWindow();
         if (rl.IsKeyPressed(rl.KEY_R)) game.state = .choosing_difficulty;
+        const mouse = rl.GetMousePosition();
+        const mouse_delta = rl.GetMouseDelta();
 
         switch (game.state) {
             .playing => {
@@ -75,6 +76,21 @@ pub fn main() !void {
                 }
             },
             .choosing_difficulty => {
+                if (!std.meta.eql(mouse_delta, rl.Vector2Zero())) {
+                    for (diff_boxes) |box| {
+                        if (rl.CheckCollisionPointRec(mouse, box.rect)) {
+                            game.selected_difficulty = box.difficulty;
+                        }
+                    }
+                }
+                if (rl.IsMouseButtonPressed(rl.MOUSE_BUTTON_LEFT)) {
+                    for (diff_boxes) |box| {
+                        if (rl.CheckCollisionPointRec(mouse, box.rect)) {
+                            game.state = .playing;
+                            board = Board(board_side_in_tiles).init(game.selected_difficulty) orelse unreachable;
+                        }
+                    }
+                }
                 if (rl.IsKeyPressed(rl.KEY_DOWN)) {
                     game.selected_difficulty = switch (game.selected_difficulty) {
                         .easy => .medium,
