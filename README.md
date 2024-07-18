@@ -13,9 +13,8 @@ Ensure you have zig 0.13 installed (`zig build` tends to break between minor ver
 ## TODO
 
 - [X] Set up winning and losing states
-- [ ] Convert everything to rec collisions
-- [ ] Be able to reset the game
-- [ ] Choose your difficulty
+- [X] Be able to reset the game
+- [X] Choose your difficulty
 - [ ] Properly center mine numbers
 - [ ] Improve testing
 - [ ] Set up e2e testing?

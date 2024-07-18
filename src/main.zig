@@ -61,8 +61,11 @@ pub fn main() !void {
 
         switch (game.state) {
             .playing => {
+                if (rl.IsKeyPressed(rl.KEY_R)) {
+                    game.state = .choosing_difficulty;
+                }
                 if (rl.IsMouseButtonPressed(rl.MOUSE_BUTTON_LEFT)) {
-                    if (getClickedTile()) |pos| {
+                    if (getClickedTile(mouse)) |pos| {
                         if (board.uncover(pos.x, pos.y)) |state| {
                             game.state = state;
                             std.debug.print("New state: {any}\n", .{state});
@@ -71,7 +74,7 @@ pub fn main() !void {
                 }
 
                 if (rl.IsMouseButtonPressed(rl.MOUSE_BUTTON_RIGHT)) {
-                    if (getClickedTile()) |pos| {
+                    if (getClickedTile(mouse)) |pos| {
                         if (board.flag(pos.x, pos.y)) |state| {
                             game.state = state;
                             std.debug.print("New state: {any}\n", .{state});
@@ -218,18 +221,17 @@ test {
     std.testing.refAllDecls(@This());
 }
 
-fn getClickedTile() ?g.Position {
-    const pos = rl.GetMousePosition();
-    if (pos.x < half_padding or width - half_padding < pos.x or
-        pos.y < half_padding or height - half_padding < pos.y)
+fn getClickedTile(mouse: rl.Vector2) ?g.Position {
+    if (mouse.x < half_padding or width - half_padding < mouse.x or
+        mouse.y < half_padding or height - half_padding < mouse.y)
     {
         return null;
     }
     // Convert the position to x/y tile value
-    const x_int: usize = @intFromFloat(pos.x);
+    const x_int: usize = @intFromFloat(mouse.x);
     const x = @divFloor(x_int - half_padding, tile_width);
 
-    const y_int: usize = @intFromFloat(pos.y);
+    const y_int: usize = @intFromFloat(mouse.y);
     const y = @divFloor(y_int - half_padding, tile_height);
     return .{ .x = @intCast(x), .y = @intCast(y) };
 }
