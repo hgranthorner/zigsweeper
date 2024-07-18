@@ -15,6 +15,8 @@ Ensure you have zig 0.13 installed (`zig build` tends to break between minor ver
 - [X] Set up winning and losing states
 - [X] Be able to reset the game
 - [X] Choose your difficulty
-- [ ] Properly center mine numbers
+- [X] Properly center mine numbers
+- [ ] Show flag counter and number of mines remaining
 - [ ] Improve testing
 - [ ] Set up e2e testing?
+- [ ] Improve graphics

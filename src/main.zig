@@ -138,7 +138,16 @@ pub fn main() !void {
                 rl.DrawText(
                     "You win!",
                     (width / 2) - @divFloor(win_width, 2),
-                    (height / 2),
+                    (height / 2) - font_size,
+                    font_size,
+                    rl.BLACK,
+                );
+
+                const diff_width = rl.MeasureText("Press R to return to the difficulty select screen", font_size);
+                rl.DrawText(
+                    "Press R to return to the difficulty select screen",
+                    (width / 2) - @divFloor(diff_width, 2),
+                    (height / 2) + font_size,
                     font_size,
                     rl.BLACK,
                 );
@@ -185,6 +194,8 @@ fn drawTile(board: *Board, ix: anytype, iy: anytype) !void {
     const tile = board.get(ix, iy).?;
     const color = tileColor(tile);
     rl.DrawRectangleRec(rect, color);
+    const center_tile_width = x + (tile_width / 2);
+    const center_tile_height = y + (tile_height / 2);
 
     if (tile.uncovered) {
         switch (tile.type) {
@@ -192,12 +203,26 @@ fn drawTile(board: *Board, ix: anytype, iy: anytype) !void {
                 var buf = std.mem.zeroes([128]u8);
                 const st: []const u8 = try std.fmt.bufPrint(&buf, "{d}", .{value});
                 const c_ptr: [*c]const u8 = @ptrCast(st);
-                rl.DrawText(c_ptr, @intCast(x + padding), @intCast(y + padding), 20, rl.BLACK);
+                const text_width = @as(usize, @intCast(rl.MeasureText(c_ptr, font_size)));
+                rl.DrawText(
+                    c_ptr,
+                    @intCast(center_tile_width - @divTrunc(text_width, 2)),
+                    @intCast(center_tile_height - (font_size / 2)),
+                    20,
+                    rl.BLACK,
+                );
             },
             else => {},
         }
     } else if (tile.flag) {
-        rl.DrawText("F", @intCast(x + padding), @intCast(y + padding), 20, rl.RED);
+        const text_width = @as(usize, @intCast(rl.MeasureText("F", font_size)));
+        rl.DrawText(
+            "F",
+            @intCast(center_tile_width - @divTrunc(text_width, 2)),
+            @intCast(center_tile_height - (font_size / 2)),
+            20,
+            rl.RED,
+        );
     }
 
     rl.DrawRectangleLinesEx(rect, 1.0, rl.RED);
