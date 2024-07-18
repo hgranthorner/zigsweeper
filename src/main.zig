@@ -118,6 +118,9 @@ pub fn main() !void {
                         if (board.flag(pos.x, pos.y)) |state| {
                             game.state = state;
                             std.debug.print("New state: {any}\n", .{state});
+                        } else if (board.uncoverSurrounding(pos.x, pos.y)) |state| {
+                            game.state = state;
+                            std.debug.print("New state: {any}\n", .{state});
                         }
                     }
                 }

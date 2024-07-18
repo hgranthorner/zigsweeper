@@ -64,6 +64,7 @@ pub fn Board(comptime square: usize) type {
         pub fn uncover(self: *@This(), x: anytype, y: anytype) ?GameState {
             const initial_tile = self.get(x, y) orelse return null;
             if (initial_tile.uncovered) return null;
+            if (initial_tile.flag) return null;
             if (initial_tile.type == .mine) {
                 return GameState.lost;
             }
@@ -97,6 +98,33 @@ pub fn Board(comptime square: usize) type {
                 }
             }
             return null;
+        }
+
+        pub fn uncoverSurrounding(self: *@This(), x: anytype, y: anytype) ?GameState {
+            const initial_tile = self.get(x, y) orelse return null;
+            if (!initial_tile.uncovered) return null;
+            return switch (initial_tile.type) {
+                .value => {
+                    const poses = @This().getSurroundingPositions(@intCast(x), @intCast(y));
+                    var total_flags: u8 = 0;
+                    for (poses) |p| {
+                        const surr_tile = self.get(p.x, p.y);
+                        if (surr_tile) |tile| {
+                            if (tile.flag) {
+                                total_flags += 1;
+                            }
+                        }
+                    }
+                    if (total_flags != initial_tile.type.value) {
+                        return null;
+                    }
+                    for (poses) |p| {
+                        if (self.uncover(p.x, p.y)) |state| return state;
+                    }
+                    return null;
+                },
+                .mine => unreachable,
+            };
         }
 
         fn seedMines(self: *@This()) void {
