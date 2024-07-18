@@ -100,7 +100,7 @@ pub fn Board(comptime square: usize) type {
         }
 
         fn seedMines(self: *@This()) void {
-            var prng = std.rand.DefaultPrng.init(undefined);
+            var prng = std.Random.DefaultPrng.init(@intCast(std.time.milliTimestamp()));
             var random = prng.random();
             const num_mines: usize = self.difficulty.numMines(board_size);
 
@@ -108,6 +108,7 @@ pub fn Board(comptime square: usize) type {
                 var mine_index = random.uintAtMost(usize, self.tiles.len - 1);
                 while (self.tiles[mine_index].type == TileTag.mine) {
                     mine_index = random.uintAtMost(usize, self.tiles.len - 1);
+                    std.debug.print("Created another mine index {d}\n", .{mine_index});
                 }
                 self.tiles[mine_index] = Tile.mine();
             }

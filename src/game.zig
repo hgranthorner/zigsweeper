@@ -10,6 +10,7 @@ pub const TileType = union(TileTag) { mine: void, value: u8 };
 pub const Tile = struct {
     type: TileType,
     flag: bool,
+    hovered: bool = false,
     uncovered: bool,
 
     pub fn mine() Tile {
