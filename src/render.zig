@@ -101,3 +101,11 @@ pub fn getHoveredPosition(screen: Screen) ?g.Position {
     const y = @divFloor(y_int - screen.padding.top, screen.tile_height);
     return .{ .x = @intCast(x), .y = @intCast(y) };
 }
+
+pub fn drawStatusBar(screen: Screen, board: *b.Board(b.LARGEST_BOARD_SIDE)) !void {
+    const remaining_flags = board.remainingFlags();
+    var text_buf = std.mem.zeroes([64]u8);
+
+    const text = try std.fmt.bufPrint(&text_buf, "Flags remaining: {d}", .{remaining_flags});
+    rl.DrawText(@ptrCast(text), @intFromFloat(screen.playable_area.x), 5, 20, rl.BLACK);
+}

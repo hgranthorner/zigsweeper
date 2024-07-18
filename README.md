@@ -16,7 +16,7 @@ Ensure you have zig 0.13 installed (`zig build` tends to break between minor ver
 - [X] Be able to reset the game
 - [X] Choose your difficulty
 - [X] Properly center mine numbers
-- [ ] Show flag counter and number of mines remaining
+- [X] Show flag counter and number of mines remaining
 - [ ] Implement right clicking on uncovered square to uncover all surrounding squares if all surrounding mines have been flagged
 - [ ] Improve testing
 - [ ] Set up e2e testing?

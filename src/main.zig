@@ -172,6 +172,7 @@ pub fn main() !void {
                         try render.drawTile(screen, &board, ix, iy);
                     }
                 }
+                try render.drawStatusBar(screen, &board);
             },
             .won => {
                 const win_width = rl.MeasureText("You win!", font_size);

@@ -148,24 +148,26 @@ pub fn Board(comptime square: usize) type {
             }
 
             if (self.get(x, y)) |const_tile| {
-                {
-                    var tile = const_tile;
-                    if (tile.flag) {
-                        tile.flag = false;
-                    } else {
-                        tile.flag = true;
-                    }
-                    self.set(x, y, tile).?;
-                }
-
-                if (self.remainingFlags() == 0) {
-                    for (self.tiles) |tile| {
-                        if (tile.flag and tile.type != .mine) {
-                            return null;
+                if (!const_tile.uncovered) {
+                    {
+                        var tile = const_tile;
+                        if (tile.flag) {
+                            tile.flag = false;
+                        } else {
+                            tile.flag = true;
                         }
+                        self.set(x, y, tile).?;
                     }
 
-                    return GameState.won;
+                    if (self.remainingFlags() == 0) {
+                        for (self.tiles) |tile| {
+                            if (tile.flag and tile.type != .mine) {
+                                return null;
+                            }
+                        }
+
+                        return GameState.won;
+                    }
                 }
             }
 
@@ -229,8 +231,6 @@ pub fn Board(comptime square: usize) type {
             for (self.tiles) |tile| {
                 if (tile.flag) total_flags -= 1;
             }
-
-            std.debug.print("Remaining flags: {d}\n", .{total_flags});
 
             return total_flags;
         }
