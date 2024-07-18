@@ -1,7 +1,6 @@
 const std = @import("std");
 const g = @import("game.zig");
 const b = @import("board.zig");
-const Board = @import("board.zig").Board;
 const rl = @import("raylib.zig");
 
 const TilePosition = struct {
@@ -21,9 +20,10 @@ const tile_height = play_height / board_side_in_tiles;
 const font_size = 20;
 
 const DifficultyBox = struct { difficulty: g.Difficulty, text: []const u8, rect: rl.Rectangle };
+const Board = b.Board(board_side_in_tiles);
 
 pub fn main() !void {
-    var board: Board(board_side_in_tiles) = undefined;
+    var board: Board = undefined;
     var game = g.Game.init(.choosing_difficulty);
 
     rl.SetConfigFlags(rl.FLAG_MSAA_4X_HINT | rl.FLAG_VSYNC_HINT);
@@ -32,7 +32,11 @@ pub fn main() !void {
     rl.SetTargetFPS(60);
 
     var diff_boxes: [3]DifficultyBox = undefined;
-    for ([3]g.Difficulty{ g.Difficulty.easy, g.Difficulty.medium, g.Difficulty.hard }, 0..) |difficulty, i| {
+    for ([3]g.Difficulty{
+        g.Difficulty.easy,
+        g.Difficulty.medium,
+        g.Difficulty.hard,
+    }, 0..) |difficulty, i| {
         const ix: isize = @intCast(i);
         const diff_str = difficulty.toString();
         const text_width = rl.MeasureText(@ptrCast(diff_str), font_size);
@@ -87,7 +91,7 @@ pub fn main() !void {
                     for (diff_boxes) |box| {
                         if (rl.CheckCollisionPointRec(mouse, box.rect)) {
                             game.state = .playing;
-                            board = Board(board_side_in_tiles).init(game.selected_difficulty) orelse unreachable;
+                            board = Board.init(game.selected_difficulty) orelse unreachable;
                         }
                     }
                 }
@@ -107,7 +111,7 @@ pub fn main() !void {
                 }
                 if (rl.IsKeyPressed(rl.KEY_ENTER)) {
                     game.state = .playing;
-                    board = Board(board_side_in_tiles).init(game.selected_difficulty) orelse unreachable;
+                    board = Board.init(game.selected_difficulty) orelse unreachable;
                 }
             },
             .lost => {},
@@ -128,23 +132,44 @@ pub fn main() !void {
             },
             .won => {
                 const win_width = rl.MeasureText("You win!", font_size);
-                rl.DrawText("You win!", (width / 2) - @divFloor(win_width, 2), (height / 2), font_size, rl.BLACK);
+                rl.DrawText(
+                    "You win!",
+                    (width / 2) - @divFloor(win_width, 2),
+                    (height / 2),
+                    font_size,
+                    rl.BLACK,
+                );
             },
             .choosing_difficulty => {
                 for (diff_boxes) |box| {
-                    const color = if (std.meta.eql(box.difficulty, game.selected_difficulty)) rl.RED else rl.BLACK;
-                    rl.DrawText(@ptrCast(box.text), @intFromFloat(box.rect.x), @intFromFloat(box.rect.y), font_size, color);
+                    const color = if (std.meta.eql(
+                        box.difficulty,
+                        game.selected_difficulty,
+                    )) rl.RED else rl.BLACK;
+                    rl.DrawText(
+                        @ptrCast(box.text),
+                        @intFromFloat(box.rect.x),
+                        @intFromFloat(box.rect.y),
+                        font_size,
+                        color,
+                    );
                 }
             },
             .lost => {
                 const lose_width = rl.MeasureText("You lose!", font_size);
-                rl.DrawText("You lose!", (width / 2) - @divFloor(lose_width, 2), (height / 2), font_size, rl.BLACK);
+                rl.DrawText(
+                    "You lose!",
+                    (width / 2) - @divFloor(lose_width, 2),
+                    (height / 2),
+                    font_size,
+                    rl.BLACK,
+                );
             },
         }
     }
 }
 
-fn drawTile(board: *Board(board_side_in_tiles), ix: anytype, iy: anytype) !void {
+fn drawTile(board: *Board, ix: anytype, iy: anytype) !void {
     const x = ix * tile_width + half_padding;
     const y = iy * tile_height + half_padding;
     const rect = rl.Rectangle{
